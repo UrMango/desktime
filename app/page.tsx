@@ -1,21 +1,31 @@
 "use client"
 import React, { useState } from 'react';
+import styled from "styled-components";
+
+let interval: NodeJS.Timer;
 
 const Home = () => {
-	const [buttonText, setButtonText] = useState("Start Traking.");
+	const [trackedTime, setTrackedTime] = useState<string>("0:0:0");
+	const [finishedTime, setFinishedTime] = useState<string>("");
 	const [started, setStarted] = useState(false);
 
-	const onClick = () => {
+	const handleSubmitForm = (e: any) => {
+		e.preventDefault();
+
 		if(!started) {
 			setStarted(true);
-			setButtonText("Tracking time...");
+			setFinishedTime("");
 			const timeSpan = Date.now();
-			setInterval(	 () => {
-				let text = "Tracking Time:\n";
+			interval = setInterval(() => {
 				const date = new Date(Date.now() - timeSpan + -120 * 60000);
-				text += date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString();
-				setButtonText(text);
+				const timer = date.getHours().toString() + ":" + date.getMinutes().toString() + ":" + date.getSeconds().toString();
+				setTrackedTime(timer);
 			}, 1000);
+		} else {
+			setStarted(false);
+			setFinishedTime(trackedTime);
+			setTrackedTime("0:0:0");
+			clearInterval(interval);
 		}
 	}
 
@@ -23,13 +33,37 @@ const Home = () => {
 	<div className='flex items-center justify-center flex-col gap-3'>
 		<h1>TRACK YOUR TIME! WHAT ARE YOU? IDAN?!</h1>
 		<h3>"I'm Idan and I'll be there in 5 minutes"</h3>
-		<input type="text" placeholder='Name' />
-		<input type="text" placeholder='What are you doing?' />
-		<button onClick={onClick}>{buttonText}</button>
-
-
+		<Form onSubmit={handleSubmitForm}>
+			<TextInput type="text" placeholder='Name' />
+			<TextInput type="text" placeholder='What are you doing?' />
+			<SubmitButton type="submit">{!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`}</SubmitButton>
+		</Form>
+		<FinishedTimeTracked>{finishedTime}</FinishedTimeTracked>
 	</div>
   )
 }
+
+const Form = styled.form`
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+`;
+
+const TextInput = styled.input`
+	padding: 5px 15px;
+	border: 1px solid black;
+	border-radius: 8px;
+`;
+
+const SubmitButton = styled.button`
+	padding: 10px;
+	color: white;
+	background-color: black !important;
+	border-radius: 8px;
+`;
+
+const FinishedTimeTracked = styled.h3`
+	
+`;
 
 export default Home;
