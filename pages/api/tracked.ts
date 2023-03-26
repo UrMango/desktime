@@ -13,7 +13,9 @@ export default async function handler(
     try {
       const data = JSON.parse(req.body);
       console.log(data);
-      const track = await times.create({name: data.name, starttime: data.startedTime, endtime: data.endedTime, comments: data.comments});
+      if(data.starteTime == 0 || data.endeTime == 0 || data.starteTime == null || data.endeTime == null || data.name == "" || data.name == null)
+        throw "error";
+      const track = await times.create({name: data.name, starttime: data.starteTime, endtime: data.endeTime, comments: data.comments});
       console.log("worked");
       console.log(track);
       res.status(201).json({ success: true })

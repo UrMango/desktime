@@ -7,6 +7,9 @@ const Home = () => {
 	const [remInterval, setRemInterval] = useState<NodeJS.Timer>();
 	const [name, setName] = useState("");
 	const [comments, setComments] = useState("");
+	const [startDate, setStartDate] = useState(-1);
+	const [endDate, setEndDate] = useState(-1);
+
 	const [trackedTime, setTrackedTime] = useState<string>("0:0:0");
 	const [finishedTime, setFinishedTime] = useState<string>("");
 	const [started, setStarted] = useState(false);
@@ -16,7 +19,9 @@ const Home = () => {
 
 	const [users, setUsers] = useState<any>({});
 	const router = useRouter();
-	useEffect(() => {		
+
+	useEffect(() => {
+		setName(localStorage.getItem("name") || "");
 		fetch("http://localhost:3000/api/getTimes").then(async (res) => {
 			const usersRes = (await res.json()).users;
 			
@@ -35,7 +40,10 @@ const Home = () => {
 	const handleSubmitForm = (e: any) => {
 		e.preventDefault();
 
-		if(!started) {
+		console.log(startDate == -1);
+		
+
+		if(!started && (startDate == -1 || endDate == -1)) {
 			setStarted(true);
 			setFinishedTime("");
 			const timeSpan = Date.now();
@@ -47,6 +55,22 @@ const Home = () => {
 				setTrackedTime(timer);
 			}, 1000));
 		} else {
+			let starteTime = startedTime;
+			let endeTime = endedTime;
+			if(startDate != -1 && endDate != -1) {
+				setStartedTime(startDate);
+				setEndedTime(endDate);
+				starteTime = startDate;
+				endeTime = endDate;
+				console.log({
+					name,
+					comments,
+					starteTime,
+					endeTime,
+					startDate,
+					endDate
+				});
+			}
 			setStarted(false);
 			clearInterval(remInterval);
 			setFinishedTime(trackedTime);
@@ -57,10 +81,12 @@ const Home = () => {
 				body: JSON.stringify({
 					name,
 					comments,
-					startedTime,
-					endedTime
+					starteTime,
+					endeTime
 				})
 			})
+
+			router.refresh();
 		}
 	}
 
@@ -69,9 +95,21 @@ const Home = () => {
 		<h1>TRACK YOUR TIME! WHAT ARE YOU? IDAN?!</h1>
 		<h3>"I'm Idan and I'll be there in 5 minutes"</h3>
 		<Form onSubmit={handleSubmitForm}>
-			<TextInput onChange={(e) => setName(e.target.value)} type="text" placeholder='Name' />
+			<TextInput value={name} onChange={(e) => {setName(e.target.value); localStorage.setItem("name", e.target.value);}} type="text" placeholder='Name' />
 			<TextInput onChange={(e) => setComments(e.target.value)} type="text" placeholder='What are you doing?' />
-			<SubmitButton type="submit">{!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`}</SubmitButton>
+			<h3>Start Date:</h3>
+			<TextInput onChange={(e) => {
+				setStartDate(Number(new Date(e.target.value).getTime()));
+				if(Number.isNaN(Number(new Date(e.target.value).getTime())))
+					setStartDate(-1);
+			}} type="datetime-local" />
+			<h3>End Date:</h3>
+			<TextInput onChange={(e) => {
+				setEndDate(Number(new Date(e.target.value).getTime()));
+				if(Number.isNaN(Number(new Date(e.target.value).getTime())))
+					setEndDate(-1);
+			}} type="datetime-local" />
+			<SubmitButton type="submit">{endDate == -1 || startDate == -1 ? (!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`) : "Add Tracked Time"}</SubmitButton>
 		</Form>
 
 		<div className='mt-3'>
@@ -81,6 +119,7 @@ const Home = () => {
 				return <>
 					<p>{user.name}</p>
 					<p>{timer}</p>
+					<p>{Math.floor(user.hours/3.6e+6)*75}₪</p>
 				</>
 			})}
 		</div>
