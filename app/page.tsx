@@ -112,15 +112,15 @@ const Home = () => {
 			<SubmitButton type="submit">{endDate == -1 || startDate == -1 ? (!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`) : "Add Tracked Time"}</SubmitButton>
 		</Form>
 
-		<div className='mt-3'>
+		<div className='mt-3 flex flex-col gap-2'>
 			{Object.values(users).map((user : any) => {
 				const date = new Date(user.hours);
 				const timer = (date.getHours() - 2).toString().padStart(2, "00") + ":" + date.getMinutes().toString().padStart(2, "00") + ":" + date.getSeconds().toString().padStart(2, "00");
-				return <>
-					<p>{user.name}</p>
+				return (<div>
+					<p><b>{user.name}</b></p>
 					<p>{timer}</p>
 					<p>{Math.floor(user.hours/3.6e+6)*75}₪</p>
-				</>
+				</div>)
 			})}
 		</div>
 		<FinishedTimeTracked>{finishedTime}</FinishedTimeTracked>
