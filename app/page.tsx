@@ -26,6 +26,8 @@ const Home = () => {
 
 	const router = useRouter();
 
+	const [events, setEvents] = useState<any>(null);
+
 	useEffect(() => {
 		setName(localStorage.getItem("name") || "");
 		fetch("https://remain-desktime.vercel.app/api/getTimes").then(async (res) => {
@@ -37,13 +39,17 @@ const Home = () => {
 				if(usersTemp[user.name]) 
 					hours += usersTemp[user.name].hours;
 				usersTemp[user.name] = { name: user.name, hours };
-				router.refresh();
 				setUsers(usersTemp);
 			});
 		});
 	}, []);
 
 	const getEvents = (info : any, successCallback : any, failureCallback : any) => {
+		if(events != null) {
+			successCallback(events);
+			return;
+		}
+		
 		fetch("https://remain-desktime.vercel.app/api/getTimes").then(async (res) => {
 			let eventsNew : any[] = [];
 			const usersRes = (await res.json()).users;
@@ -60,6 +66,7 @@ const Home = () => {
 				}
 				eventsNew.push(event);
 			});
+			setEvents(eventsNew);
 			successCallback(eventsNew);
 		});
 	}
@@ -103,7 +110,7 @@ const Home = () => {
 			setFinishedTime(trackedTime);
 			setTrackedTime("00:00:00");
 			localStorage.setItem("name", name);
-			fetch("http://localhost:3000/api/tracked", {
+			fetch("https://remain-desktime.vercel.app/api/tracked", {
 				method: "POST",
 				body: JSON.stringify({
 					name,
@@ -113,7 +120,6 @@ const Home = () => {
 				})
 			})
 
-			router.refresh();
 		}
 	}
 
