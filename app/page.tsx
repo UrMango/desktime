@@ -3,6 +3,11 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import styled from "styled-components";
 
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+
 const Home = () => {
 	const [remInterval, setRemInterval] = useState<NodeJS.Timer>();
 	const [name, setName] = useState("");
@@ -18,6 +23,7 @@ const Home = () => {
 	const [endedTime, setEndedTime] = useState(0);
 
 	const [users, setUsers] = useState<any>({});
+
 	const router = useRouter();
 
 	useEffect(() => {
@@ -25,7 +31,7 @@ const Home = () => {
 		fetch("http://localhost:3000/api/getTimes").then(async (res) => {
 			const usersRes = (await res.json()).users;
 			
-			usersRes.forEach((user : any) => {
+			usersRes.forEach((user : any, i : number) => {
 				const usersTemp = users;
 				let hours = user.endtime - user.starttime;
 				if(usersTemp[user.name]) 
@@ -36,6 +42,27 @@ const Home = () => {
 			});
 		});
 	}, []);
+
+	const getEvents = (info : any, successCallback : any, failureCallback : any) => {
+		fetch("http://localhost:3000/api/getTimes").then(async (res) => {
+			let eventsNew : any[] = [];
+			const usersRes = (await res.json()).users;
+			
+			usersRes.forEach((user : any, i : number) => {
+				console.log(eventsNew);
+				const event = {
+					id: i,
+					groupId: user.name,
+					title: user.name + " | " + user.comments,
+					start: new Date(user.starttime).toISOString(),
+					end: new Date(user.endtime).toISOString(),
+					backgroundColor: (user.name == "Noam Naim" ? "blue" : "red")
+				}
+				eventsNew.push(event);
+			});
+			successCallback(eventsNew);
+		});
+	}
 
 	const handleSubmitForm = (e: any) => {
 		e.preventDefault();
@@ -91,39 +118,56 @@ const Home = () => {
 	}
 
   return (
-	<div className='flex items-center justify-center flex-col gap-3'>
-		<h1>TRACK YOUR TIME! WHAT ARE YOU? IDAN?!</h1>
-		<h3>"I'm Idan and I'll be there in 5 minutes"</h3>
-		<Form onSubmit={handleSubmitForm}>
-			<TextInput value={name} onChange={(e) => {setName(e.target.value); localStorage.setItem("name", e.target.value);}} type="text" placeholder='Name' />
-			<TextInput onChange={(e) => setComments(e.target.value)} type="text" placeholder='What are you doing?' />
-			<h3>Start Date:</h3>
-			<TextInput onChange={(e) => {
-				setStartDate(Number(new Date(e.target.value).getTime()));
-				if(Number.isNaN(Number(new Date(e.target.value).getTime())))
-					setStartDate(-1);
-			}} type="datetime-local" />
-			<h3>End Date:</h3>
-			<TextInput onChange={(e) => {
-				setEndDate(Number(new Date(e.target.value).getTime()));
-				if(Number.isNaN(Number(new Date(e.target.value).getTime())))
-					setEndDate(-1);
-			}} type="datetime-local" />
-			<SubmitButton type="submit">{endDate == -1 || startDate == -1 ? (!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`) : "Add Tracked Time"}</SubmitButton>
-		</Form>
+	<div className='flex flex-row-reverse justify-center items-center gap-20 h-screen'>
+		<div className='flex items-center justify-center flex-col gap-3'>
+			<h1>TRACK YOUR TIME! WHAT ARE YOU? IDAN?!</h1>
+			<h3>"I'm Idan and I'll be there in 5 minutes"</h3>
+			<Form onSubmit={handleSubmitForm}>
+				<TextInput value={name} onChange={(e) => {setName(e.target.value); localStorage.setItem("name", e.target.value);}} type="text" placeholder='Name' />
+				<TextInput onChange={(e) => setComments(e.target.value)} type="text" placeholder='What are you doing?' />
+				<h3>Start Date:</h3>
+				<TextInput onChange={(e) => {
+					setStartDate(Number(new Date(e.target.value).getTime()));
+					if(Number.isNaN(Number(new Date(e.target.value).getTime())))
+						setStartDate(-1);
+				}} type="datetime-local" />
+				<h3>End Date:</h3>
+				<TextInput onChange={(e) => {
+					setEndDate(Number(new Date(e.target.value).getTime()));
+					if(Number.isNaN(Number(new Date(e.target.value).getTime())))
+						setEndDate(-1);
+				}} type="datetime-local" />
+				<SubmitButton type="submit">{endDate == -1 || startDate == -1 ? (!started ? "Start Tracking" : `Tracking Time: ${trackedTime}`) : "Add Tracked Time"}</SubmitButton>
+			</Form>
 
-		<div className='mt-3 flex flex-col gap-2'>
-			{Object.values(users).map((user : any) => {
-				const date = new Date(user.hours);
-				const timer = (date.getHours() - 2).toString().padStart(2, "00") + ":" + date.getMinutes().toString().padStart(2, "00") + ":" + date.getSeconds().toString().padStart(2, "00");
-				return (<div>
-					<p><b>{user.name}</b></p>
-					<p>{timer}</p>
-					<p>{Math.floor(user.hours/3.6e+6)*75}₪</p>
-				</div>)
-			})}
+			<div className='mt-3 flex flex-col gap-2'>
+				{Object.values(users).map((user : any) => {
+					const date = new Date(user.hours);
+					const timer = (date.getHours() - 2).toString().padStart(2, "00") + ":" + date.getMinutes().toString().padStart(2, "00") + ":" + date.getSeconds().toString().padStart(2, "00");
+					return (<div>
+						<p><b>{user.name}</b></p>
+						<p>{timer}</p>
+						<p>{Math.floor(user.hours/3.6e+6)*75}₪</p>
+					</div>)
+				})}
+			</div>
+			<FinishedTimeTracked>{finishedTime}</FinishedTimeTracked>
 		</div>
-		<FinishedTimeTracked>{finishedTime}</FinishedTimeTracked>
+		<div className='h-full w-1/2 flex items-center'>
+			<FullCalendar
+				plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+				expandRows={true}
+				height="80vh"
+				aspectRatio={1.8}
+				initialView="timeGridDay"
+				headerToolbar={{
+					center: 'dayGridMonth,timeGridWeek,timeGridDay',
+				}}
+				events={getEvents}
+				weekends={true}
+				handleWindowResize={true}
+			/>
+		</div>
 	</div>
   )
 }

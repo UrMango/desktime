@@ -6,6 +6,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.5",
+    "@fullcalendar/interaction": "^6.1.5",
+    "@fullcalendar/react": "^6.1.5",
+    "@fullcalendar/timegrid": "^6.1.5",
     "eslint-config-next": "^13.2.3",
     "mongoose": "^7.0.2",
     "next": "^13.2.3",
