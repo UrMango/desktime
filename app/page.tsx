@@ -28,7 +28,7 @@ const Home = () => {
 
 	useEffect(() => {
 		setName(localStorage.getItem("name") || "");
-		fetch("http://localhost:3000/api/getTimes").then(async (res) => {
+		fetch("https://remain-desktime.vercel.app/api/getTimes").then(async (res) => {
 			const usersRes = (await res.json()).users;
 			
 			usersRes.forEach((user : any, i : number) => {
@@ -44,7 +44,7 @@ const Home = () => {
 	}, []);
 
 	const getEvents = (info : any, successCallback : any, failureCallback : any) => {
-		fetch("http://localhost:3000/api/getTimes").then(async (res) => {
+		fetch("https://remain-desktime.vercel.app/api/getTimes").then(async (res) => {
 			let eventsNew : any[] = [];
 			const usersRes = (await res.json()).users;
 			
